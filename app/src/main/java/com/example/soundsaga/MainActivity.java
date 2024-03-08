@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.util.Log;
@@ -107,8 +108,18 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onClick(View view) {
+        Audio temp = audios.get(binding.recycler.getChildLayoutPosition(view));
+
+        goOn(temp);
         Log.d(TAG,"onClick");
     }
+
+    private void goOn(Audio a) {
+        Intent intent = new Intent(this, AudioBookActivity.class);
+        intent.putExtra("audio", a);
+        startActivity(intent);
+    }
+
     @Override
     public boolean onLongClick(View view) {
         int i = binding.recycler.getChildLayoutPosition(view);

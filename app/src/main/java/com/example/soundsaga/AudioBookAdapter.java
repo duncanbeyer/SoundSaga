@@ -44,6 +44,12 @@ public class AudioBookAdapter extends RecyclerView.Adapter<AudioPageHolder>{
     @Override
     public void onBindViewHolder(@NonNull AudioPageHolder holder, int position) {
 
+        Audio audio = audios.get(position);
+
+        holder.binding.title.setText(audio.getTitle());
+
+        Picasso.get().load(audio.getImage()).into(holder.binding.cover);
+
     }
 
     @Override

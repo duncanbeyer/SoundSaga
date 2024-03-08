@@ -11,7 +11,6 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="14dp"
         android:text="SoundSaga"
-        android:textColor="@color/white"
         android:textSize="30sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
@@ -25,7 +24,6 @@
         android:layout_marginTop="12dp"
         android:textSize="20sp"
         android:text="Dracula"
-        android:textColor="@color/white"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/app_name" />
@@ -78,11 +76,65 @@
         android:scrollHorizontally="true"
         android:singleLine="true"
         android:text="Chapter 2 [2 of 9]"
-        android:textColor="@color/white"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="@id/cover"
         app:layout_constraintStart_toStartOf="@id/cover"
         app:layout_constraintTop_toBottomOf="@id/cover" />
+
+    <SeekBar
+        android:id="@+id/seekBar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/chapter" />
+
+    <TextView
+        android:id="@+id/speedText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="speedClick"
+        android:text="1x"
+        android:textSize="18sp"
+        android:textColor="@color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/seekBar" />
+
+    <ImageView
+        android:id="@+id/play_pause"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_marginTop="15dp"
+        android:clickable="true"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/speedText"/>
+
+    <ImageView
+        android:id="@+id/back"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:clickable="true"
+        android:src="@drawable/back"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/play_pause"
+        app:layout_constraintTop_toTopOf="@id/play_pause"
+        app:layout_constraintBottom_toBottomOf="@id/play_pause"/>
+
+    <ImageView
+        android:id="@+id/forward"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:clickable="true"
+        android:src="@drawable/fore"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/play_pause"
+        app:layout_constraintTop_toTopOf="@id/play_pause"
+        app:layout_constraintBottom_toBottomOf="@id/play_pause" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

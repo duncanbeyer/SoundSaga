@@ -4,10 +4,14 @@ import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import androidx.annotation.NonNull;
 
 import java.util.ArrayList;
 
-public class Audio {
+public class Audio implements Parcelable {
     private static final String TAG = "Audio";
     private String title;
     private String author;
@@ -87,6 +91,28 @@ public class Audio {
         }
     }
 
+    protected Audio(Parcel in) {
+        title = in.readString();
+        author = in.readString();
+        date = in.readString();
+        language = in.readString();
+        duration = in.readString();
+        image = in.readString();
+        chapters = in.createTypedArrayList(Chapter.CREATOR);
+    }
+
+    public static final Creator<Audio> CREATOR = new Creator<Audio>() {
+        @Override
+        public Audio createFromParcel(Parcel in) {
+            return new Audio(in);
+        }
+
+        @Override
+        public Audio[] newArray(int size) {
+            return new Audio[size];
+        }
+    };
+
     public String getTitle() {
         return title;
     }
@@ -119,49 +145,22 @@ public class Audio {
         return chapters.get(i);
     }
 
-    public class Chapter {
-
-        private int number;
-        private String title;
-        private String url;
-        public Chapter(JSONObject j) {
-
-            try {
-                number = j.getInt("number");
-            } catch (Exception e) {
-                Log.d(TAG,"error getting chapter num");
-                number = 0;
-            }
-            try {
-                title = j.getString("title");
-                if (title.equals("null")) {
-                    throw new Exception();
-                }
-            } catch (Exception e) {
-                title = "No title Found";
-            }
-            try {
-                url = j.getString("url");
-                if (url.equals("null")) {
-                    throw new Exception();
-                }
-            } catch (Exception e) {
-                url = "";
-            }
-        }
-
-
-        public int getNumber() {
-            return number;
-        }
-
-        public String getTitle() {
-            return title;
-        }
-
-        public String getUrl() {
-            return url;
-        }
+    @Override
+    public int describeContents() {
+        return 0;
     }
+
+    @Override
+    public void writeToParcel(@NonNull Parcel parcel, int i) {
+        parcel.writeString(title);
+        parcel.writeString(author);
+        parcel.writeString(date);
+        parcel.writeString(language);
+        parcel.writeString(duration);
+        parcel.writeString(image);
+        parcel.writeTypedList(chapters);
+    }
+
+
 
 }
