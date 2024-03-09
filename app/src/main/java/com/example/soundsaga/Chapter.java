@@ -13,6 +13,7 @@ public class Chapter implements Parcelable {
     private int number;
     private String title;
     private String url;
+    private int startTime = 0;
     public Chapter(JSONObject j) {
 
         try {
@@ -44,6 +45,7 @@ public class Chapter implements Parcelable {
         number = in.readInt();
         title = in.readString();
         url = in.readString();
+        startTime = in.readInt();
     }
 
     public static final Creator<Chapter> CREATOR = new Creator<Chapter>() {
@@ -69,6 +71,7 @@ public class Chapter implements Parcelable {
     public String getUrl() {
         return url;
     }
+    public int getStartTime() { return startTime; }
 
     @Override
     public int describeContents() {
@@ -80,5 +83,6 @@ public class Chapter implements Parcelable {
         parcel.writeInt(number);
         parcel.writeString(title);
         parcel.writeString(url);
+        parcel.writeInt(startTime);
     }
 }

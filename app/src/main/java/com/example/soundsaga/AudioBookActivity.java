@@ -5,8 +5,11 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.util.Log;
+import android.widget.SeekBar;
+import android.widget.TextView;
 
 import com.example.soundsaga.databinding.ActivityAudioBookBinding;
 import com.example.soundsaga.databinding.ActivityMainBinding;
@@ -14,19 +17,33 @@ import com.example.soundsaga.databinding.ActivityMainBinding;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.viewpager2.widget.ViewPager2;
 
 import java.text.MessageFormat;
+import java.util.Locale;
+import java.util.Timer;
+import java.util.TimerTask;
 
 
-public class AudioBookActivity extends AppCompatActivity
-        implements View.OnClickListener, View.OnLongClickListener {
+public class AudioBookActivity extends AppCompatActivity {
 
     private ActivityAudioBookBinding binding;
     private static final String TAG = "AudioBookActivity";
     public MediaPlayer player;
     private Audio audio;
-
+    private Chapter[] chapters;
+    int currentChapter;
+    SeekBar seekBar;
     private PopupMenu popupMenu;
+    int startTime = 0;
+    float speed = 1;
+    private Timer timer;
+    TextView progress;
+    TextView duration;
+    TextView speedText;
+    ImageView playPause;
+    AudioBookAdapter adapter;
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -39,32 +56,40 @@ public class AudioBookActivity extends AppCompatActivity
         } catch (Exception e) {
             Log.d(TAG,"Error getting audio in AudioBookActivity onCreate: ", e);
         }
+        progress = binding.viewPager.findViewById(R.id.progress);
+        duration = binding.viewPager.findViewById(R.id.duration);
+        playPause = binding.viewPager.findViewById(R.id.play_pause);
 
-        startAudioPlayer();
+        seekBar = binding.viewPager.findViewById(R.id.seekBar);
 
-
-    }
-
-    private void startAudioPlayer() {
-        Intent intent = new Intent(this, AudioBookActivity.class);
         player = new MediaPlayer();
-        startActivity(intent);
+        player.setOnCompletionListener(mediaPlayer -> {
+            Log.d(TAG,"Finished playing.");
+        });
+
+        adapter = new AudioBookAdapter(this, chapters, audio, player);
+
+        binding.viewPager.setAdapter(adapter);
+        binding.viewPager.setOrientation(ViewPager2.ORIENTATION_HORIZONTAL);
+        binding.viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                moveChapter(position);
+            }
+        });
+        binding.viewPager.setCurrentItem(0);
+
+        setUpSeekBar();
+
     }
 
-    @Override
-    public void onClick(View view) {
-
-
+    void moveChapter(int chapterNum) {
+        player.pause();
+        playIt(chapters[chapterNum].getUrl(), chapters[chapterNum].getStartTime());
     }
 
-    @Override
-    public boolean onLongClick(View view) {
-        return false;
-    }
+    public void playIt(String url, int startTime) {
 
-    public void playIt() {
-
-        binding.title.setText(MessageFormat.format("Title {0}", mediaCounter));
         try {
 
             player.stop();
@@ -72,8 +97,7 @@ public class AudioBookActivity extends AppCompatActivity
             player.setDataSource(url);
             player.prepare();
             int dur = player.getDuration();
-            binding.seekBar.setMax(dur);
-
+            seekBar.setMax(dur);
             player.seekTo(startTime);
             player.start();
             player.setPlaybackParams(player.getPlaybackParams().setSpeed(speed));
@@ -84,4 +108,64 @@ public class AudioBookActivity extends AppCompatActivity
             e.printStackTrace();
         }
     }
+
+    private void timerCounter() {
+        timer = new Timer();
+        TimerTask task = new TimerTask() {
+            @Override
+            public void run() {
+                runOnUiThread(() -> {
+                    if (player != null && player.isPlaying()) {
+                        seekBar.setProgress(player.getCurrentPosition());
+                        progress.setText(getTimeStamp(player.getCurrentPosition()));
+                        duration.setText(getTimeStamp(player.getDuration()));
+                    }
+                });
+            }
+        };
+        timer.schedule(task, 0, 1000);
+    }
+
+    private String getTimeStamp(int ms) {
+        int t = ms;
+        int h = ms / 3600000;
+        t -= (h * 3600000);
+        int m = t / 60000;
+        t -= (m * 60000);
+        int s = t / 1000;
+        return String.format(Locale.getDefault(), "%02d:%02d:%02d", h, m, s);
+    }
+
+    private void setUpSeekBar() {
+
+
+        seekBar.setOnSeekBarChangeListener(
+                new SeekBar.OnSeekBarChangeListener() {
+                    @Override
+                    public void onProgressChanged(SeekBar seekBar, int progressValue, boolean fromUser) {
+                        // Don't need
+                    }
+
+                    @Override
+                    public void onStartTrackingTouch(SeekBar seekBar) {
+                        // Don't need
+                    }
+
+                    @Override
+                    public void onStopTrackingTouch(SeekBar seekBar) {
+                        int progress = seekBar.getProgress();
+                        player.seekTo(progress);
+
+                    }
+                });
+    }
+
+    @Override
+    protected void onDestroy() {
+        timer.cancel();
+        player.release();
+        player = null;
+        super.onDestroy();
+    }
+
 }
