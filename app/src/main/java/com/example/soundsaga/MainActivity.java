@@ -111,6 +111,7 @@ public class MainActivity extends AppCompatActivity
         Audio temp = audios.get(binding.recycler.getChildLayoutPosition(view));
 
         goOn(temp);
+        Log.d(TAG, String.valueOf((temp == null)));
         Log.d(TAG,"onClick");
     }
 

@@ -73,6 +73,10 @@ public class Chapter implements Parcelable {
     }
     public int getStartTime() { return startTime; }
 
+    public void updateStartTime(int i) {
+        startTime = i;
+    }
+
     @Override
     public int describeContents() {
         return 0;
