@@ -19,7 +19,7 @@ public class Audio implements Parcelable {
     private String language;
     private String duration;
     private String image;
-    private ArrayList<Chapter> chapters = new ArrayList<>();
+    private ArrayList<Chapter> myChapters = new ArrayList<>();
 
     public Audio(JSONObject j) {
 
@@ -80,7 +80,7 @@ public class Audio implements Parcelable {
             JSONObject temp;
             for (int i = 0;i < arr.length();i++) {
                 temp = arr.getJSONObject(i);
-                chapters.add(new Chapter(temp));
+                myChapters.add(new Chapter(temp));
             }
         } catch (Exception e) {
             Log.d(TAG,"contents arr error", e);
@@ -88,10 +88,17 @@ public class Audio implements Parcelable {
     }
 
     public void saveChapters(ArrayList<Chapter> chapters) {
-        while (this.chapters.size() > 0) {
-            this.chapters.remove(0);
-        }
-        this.chapters.addAll(chapters);
+        Log.d(TAG,"input chapters for save is length " + chapters.size());
+//        while (this.myChapters.size() > 0) {
+//            this.myChapters.remove(0);
+//        }
+//        Log.d(TAG,"input chapters for save is length " + chapters.size());
+//        for (Chapter chapter : chapters) {
+//            this.myChapters.add(chapter);
+//            Log.d(TAG,"just added a chapter");
+//        }
+        this.myChapters = chapters;
+        Log.d(TAG,"new chapters size after save: " + chapters.size());
     }
 
     protected Audio(Parcel in) {
@@ -101,7 +108,7 @@ public class Audio implements Parcelable {
         language = in.readString();
         duration = in.readString();
         image = in.readString();
-        chapters = in.createTypedArrayList(Chapter.CREATOR);
+        myChapters = in.createTypedArrayList(Chapter.CREATOR);
     }
 
     public static final Creator<Audio> CREATOR = new Creator<Audio>() {
@@ -140,12 +147,12 @@ public class Audio implements Parcelable {
         return image;
     }
 
-    public ArrayList<Chapter> getChapters() {
-        return chapters;
+    public ArrayList<Chapter> getMyChapters() {
+        return myChapters;
     }
 
     public Chapter getChapter(int i) {
-        return chapters.get(i);
+        return myChapters.get(i);
     }
 
     @Override
@@ -161,7 +168,7 @@ public class Audio implements Parcelable {
         parcel.writeString(language);
         parcel.writeString(duration);
         parcel.writeString(image);
-        parcel.writeTypedList(chapters);
+        parcel.writeTypedList(myChapters);
     }
 
     public JSONObject toJson() {
@@ -175,7 +182,7 @@ public class Audio implements Parcelable {
             j.put("language", language);
             j.put("duration", duration);
             j.put("image", image);
-            for (Chapter chapter : chapters) {
+            for (Chapter chapter : myChapters) {
                 arr.put(chapter.toJson());
             }
             j.put("contents", arr);

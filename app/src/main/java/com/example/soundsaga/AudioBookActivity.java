@@ -3,27 +3,17 @@ package com.example.soundsaga;
 import android.content.Intent;
 import android.media.MediaPlayer;
 import android.os.Bundle;
-import android.os.PersistableBundle;
-import android.view.View;
 import android.widget.ImageView;
-import android.widget.PopupMenu;
 import android.util.Log;
-import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.example.soundsaga.databinding.ActivityAudioBookBinding;
-import com.example.soundsaga.databinding.ActivityMainBinding;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager2.widget.ViewPager2;
 
-import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Locale;
-import java.util.Timer;
-import java.util.TimerTask;
 
 
 public class AudioBookActivity extends AppCompatActivity {
@@ -60,7 +50,11 @@ public class AudioBookActivity extends AppCompatActivity {
 
         book = books.get(index);
         audio = book.getAudio();
-        chapters = audio.getChapters();
+        chapters = audio.getMyChapters();
+
+        Log.d(TAG,"Book data:");
+        Log.d(TAG,"Last chapter: " + book.getChapter());
+        Log.d(TAG,"Progress: " + chapters.get(book.getChapter()).getStartTime());
 
         progress = binding.viewPager.findViewById(R.id.progress);
         duration = binding.viewPager.findViewById(R.id.duration);
@@ -82,13 +76,20 @@ public class AudioBookActivity extends AppCompatActivity {
                 Log.d(TAG,"Switching chapters");
             }
         });
-        binding.viewPager.setCurrentItem(0);
+        binding.viewPager.setCurrentItem(book.getChapter());
 
+    }
+
+    public void back() {
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.putExtra("books", books);
+        startActivity(intent);
     }
 
     public void saveData() {
 
         audio.saveChapters(chapters);
+        Log.d(TAG,"after saving chapters size is " + audio.getMyChapters().size());
         book.save(audio, adapter.pageNum);
         books.set(index, book);
 
@@ -96,6 +97,20 @@ public class AudioBookActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+//        player.release();
+//        player = null;
+//
+//        saveData();
+//
+//        adapter.cancelTimer();
+        super.onDestroy();
+    }
+
+    @Override
+    public void onBackPressed() {
+
+        adapter.saveProgress(adapter.pageNum);
+
         player.release();
         player = null;
 
@@ -103,7 +118,7 @@ public class AudioBookActivity extends AppCompatActivity {
 
         adapter.cancelTimer();
 
-        super.onDestroy();
+        back();
     }
 
 }

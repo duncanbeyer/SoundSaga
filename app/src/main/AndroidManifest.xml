@@ -32,7 +32,7 @@
         <activity
             android:name=".MyBooksActivity"
             android:exported="true"
-            android:theme="@style/Theme.SoundSaga1"/>
+            android:theme="@style/Theme.SoundSaga2"/>
     </application>
 
 </manifest>

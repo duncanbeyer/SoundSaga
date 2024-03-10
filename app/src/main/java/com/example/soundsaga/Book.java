@@ -19,10 +19,12 @@ public class Book  implements Parcelable {
     private Audio audio;
 
     public Book(Audio a) {
+        Log.d(TAG,"in constructor Audio");
         audio = a;
     }
 
     public Book(JSONObject j) {
+        Log.d(TAG,"in constructor json");
         try {
             chapter = j.getInt("chapter");
         } catch (Exception e) {

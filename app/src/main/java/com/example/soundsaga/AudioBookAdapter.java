@@ -160,6 +160,9 @@ public class AudioBookAdapter extends RecyclerView.Adapter<AudioPageHolder>{
                         player.seekTo(progress);
                     }
                 });
+
+        setArrowVisibility();
+
     }
 
     @Override
@@ -300,7 +303,7 @@ public class AudioBookAdapter extends RecyclerView.Adapter<AudioPageHolder>{
             pageNum = position;
         }
 
-        setArrowVisibility();
+//        setArrowVisibility();
 
         cancelTimer();
 
@@ -326,8 +329,8 @@ public class AudioBookAdapter extends RecyclerView.Adapter<AudioPageHolder>{
             }
         }
     }
-
     void saveProgress(int i) {
+        Log.d(TAG,"Saving progress, i is " + i);
         chapters.get(i).updateStartTime(player.getCurrentPosition());
         if (chapters.get(i).getDuration() == 0) {
             chapters.get(i).updateDuration(player.getDuration());
