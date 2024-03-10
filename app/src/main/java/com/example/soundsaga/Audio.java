@@ -16,14 +16,10 @@ public class Audio implements Parcelable {
     private String title;
     private String author;
     private String date;
-
-
-
     private String language;
     private String duration;
     private String image;
     private ArrayList<Chapter> chapters = new ArrayList<>();
-
 
     public Audio(JSONObject j) {
 
@@ -89,6 +85,13 @@ public class Audio implements Parcelable {
         } catch (Exception e) {
             Log.d(TAG,"contents arr error", e);
         }
+    }
+
+    public void saveChapters(ArrayList<Chapter> chapters) {
+        while (this.chapters.size() > 0) {
+            this.chapters.remove(0);
+        }
+        this.chapters.addAll(chapters);
     }
 
     protected Audio(Parcel in) {
@@ -161,6 +164,26 @@ public class Audio implements Parcelable {
         parcel.writeTypedList(chapters);
     }
 
+    public JSONObject toJson() {
+        JSONObject j = new JSONObject();
+        JSONArray arr = new JSONArray();
+
+        try {
+            j.put("title", title);
+            j.put("author", author);
+            j.put("date", date);
+            j.put("language", language);
+            j.put("duration", duration);
+            j.put("image", image);
+            for (Chapter chapter : chapters) {
+                arr.put(chapter.toJson());
+            }
+            j.put("contents", arr);
+        } catch (Exception e) {
+            Log.d(TAG,"Error converting chapter to Json: ", e);
+        }
+        return j;
+    }
 
 
 }

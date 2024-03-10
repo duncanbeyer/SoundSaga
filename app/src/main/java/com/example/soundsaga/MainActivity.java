@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -25,6 +26,12 @@ import com.squareup.picasso.Picasso;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity
@@ -34,9 +41,9 @@ public class MainActivity extends AppCompatActivity
     private static final String TAG = "MainActivity";
     Adapter adapter;
     ImageView shelfButton;
-
+    ArrayList<Book> myBooks = new ArrayList<>();
     ArrayList<Audio> audios = new ArrayList<>();
-
+    ArrayList<Book> loadedBooks = new ArrayList<>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,9 +58,27 @@ public class MainActivity extends AppCompatActivity
                 new GridLayoutManager(this, 2));
 
         shelfButton = binding.getRoot().findViewById(R.id.shelf);
-//        shelfButton.setOnClickListener();
 
-        downloadData();
+        try {
+            myBooks = getIntent().getParcelableArrayListExtra("book");
+            handleData();
+        } catch (Exception e) {
+            loadFile();
+            adapter.notifyDataSetChanged();
+        }
+    }
+
+    void handleData() {
+
+        while(audios.size() > 0) {
+            audios.remove(0);
+        }
+        for (Book book : myBooks) {
+            audios.add(book.getAudio());
+        }
+        adapter.notifyDataSetChanged();
+        saveFile();
+
     }
 
     public void downloadData() {
@@ -80,13 +105,25 @@ public class MainActivity extends AppCompatActivity
     private void jsonToArr(JSONArray arr) {
 
         try {
+            Log.d(TAG,"length of arr: " + arr.length());
 
             for (int i = 0;i < arr.length();i++) {
+                Log.d(TAG,"get json: " + (arr.getJSONObject(i) == null));
                 audios.add(new Audio(arr.getJSONObject(i)));
+                myBooks.add(new Book(audios.get(i)));
             }
-
         } catch (Exception e) {
-            Log.d(TAG, "Exception loading JSON: " + e);
+            Log.e(TAG, "Exception loading JSON: " + e);
+        }
+        if (loadedBooks.size() > 0) {
+            for (int j = 0;j < loadedBooks.size();j++) {
+                for (int i = 0; i < myBooks.size(); i++) {
+                    if (myBooks.get(i).getAudio().getTitle().equals(loadedBooks.get(j).getAudio().getTitle())) {
+                        myBooks.set(i, loadedBooks.get(j));
+                        break;
+                    }
+                }
+            }
         }
 
         adapter.notifyDataSetChanged();
@@ -108,16 +145,17 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onClick(View view) {
-        Audio temp = audios.get(binding.recycler.getChildLayoutPosition(view));
+        Book temp = myBooks.get(binding.recycler.getChildLayoutPosition(view));
 
-        goOn(temp);
+        goOn(binding.recycler.getChildLayoutPosition(view));
         Log.d(TAG, String.valueOf((temp == null)));
         Log.d(TAG,"onClick");
     }
 
-    private void goOn(Audio a) {
+    private void goOn(int i) {
         Intent intent = new Intent(this, AudioBookActivity.class);
-        intent.putExtra("audio", a);
+        intent.putExtra("books", myBooks);
+        intent.putExtra("index", i);
         startActivity(intent);
     }
 
@@ -126,7 +164,7 @@ public class MainActivity extends AppCompatActivity
         int i = binding.recycler.getChildLayoutPosition(view);
         Log.d(TAG,"onLongClick");
 
-        Audio a = audios.get(i);
+        Audio a = myBooks.get(i).getAudio();
 
         LayoutInflater inflater = getLayoutInflater();
         View v = inflater.inflate(R.layout.info_alert, null);
@@ -153,5 +191,43 @@ public class MainActivity extends AppCompatActivity
         dialog.show();
 
         return true;
+    }
+
+    public void loadFile() {
+        myBooks = new ArrayList<>();
+        try {
+            InputStream is = getApplicationContext().openFileInput("Docs.json");
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line);
+            }
+            JSONArray arr = new JSONArray(sb.toString());
+            for (int i = 0; i < arr.length();i++) {
+                loadedBooks.add(new Book(arr.getJSONObject(i)));
+            }
+            is.close();
+        } catch (Exception e) {}
+        downloadData();
+    }
+
+    void saveFile() {
+        try {
+            FileOutputStream fos = getApplicationContext().openFileOutput("Docs.json", Context.MODE_PRIVATE);
+            OutputStreamWriter writer = new OutputStreamWriter(fos, StandardCharsets.UTF_8);
+
+            JSONArray jsonArray = new JSONArray();
+
+            for (Book book : myBooks) {
+                jsonArray.put(book.toJson());
+            }
+            String jsonString = jsonArray.toString();
+            writer.write(jsonString);
+            writer.close();
+            fos.close();
+        } catch (Exception e) {
+            Log.d(TAG,"Exception saving file: ", e);
+        }
     }
 }

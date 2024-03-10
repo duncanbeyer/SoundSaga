@@ -329,6 +329,9 @@ public class AudioBookAdapter extends RecyclerView.Adapter<AudioPageHolder>{
 
     void saveProgress(int i) {
         chapters.get(i).updateStartTime(player.getCurrentPosition());
+        if (chapters.get(i).getDuration() == 0) {
+            chapters.get(i).updateDuration(player.getDuration());
+        }
     }
 
 }

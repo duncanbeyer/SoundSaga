@@ -33,15 +33,13 @@ public class AudioBookActivity extends AppCompatActivity {
     public MediaPlayer player;
     private Audio audio;
     private ArrayList<Chapter> chapters;
-    int currentChapter = 0;
-    private PopupMenu popupMenu;
-    int startTime = 0;
-    float speed = 1;
-    private Timer timer;
     TextView progress;
     TextView duration;
     ImageView playPause;
     AudioBookAdapter adapter;
+    Book book;
+    int index;
+    ArrayList<Book> books;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -49,13 +47,19 @@ public class AudioBookActivity extends AppCompatActivity {
 
         binding = ActivityAudioBookBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-
         try {
-            audio = getIntent().getParcelableExtra("audio");
+            index = getIntent().getIntExtra("index", 0);
         } catch (Exception e) {
-            Log.d(TAG,"Error getting audio in AudioBookActivity onCreate: ", e);
+            Log.d(TAG,"Error getting index in AudioBookActivity onCreate: ", e);
+        }
+        try {
+            books = getIntent().getParcelableArrayListExtra("books");
+        } catch (Exception e) {
+            Log.d(TAG,"Error getting books in AudioBookActivity onCreate: ", e);
         }
 
+        book = books.get(index);
+        audio = book.getAudio();
         chapters = audio.getChapters();
 
         progress = binding.viewPager.findViewById(R.id.progress);
@@ -82,11 +86,23 @@ public class AudioBookActivity extends AppCompatActivity {
 
     }
 
+    public void saveData() {
+
+        audio.saveChapters(chapters);
+        book.save(audio, adapter.pageNum);
+        books.set(index, book);
+
+    }
+
     @Override
     protected void onDestroy() {
         player.release();
         player = null;
+
+        saveData();
+
         adapter.cancelTimer();
+
         super.onDestroy();
     }
 

@@ -14,6 +14,7 @@ public class Chapter implements Parcelable {
     private String title;
     private String url;
     private int startTime = 0;
+    private int duration = 0;
     public Chapter(JSONObject j) {
 
         try {
@@ -38,6 +39,16 @@ public class Chapter implements Parcelable {
         } catch (Exception e) {
             url = "";
         }
+        try {
+            startTime = j.getInt("startTime");
+        } catch (Exception e) {
+            startTime = 0;
+        }
+        try {
+            duration = j.getInt("duration");
+        } catch (Exception e) {
+            duration = 0;
+        }
     }
 
 
@@ -46,6 +57,7 @@ public class Chapter implements Parcelable {
         title = in.readString();
         url = in.readString();
         startTime = in.readInt();
+        duration = in.readInt();
     }
 
     public static final Creator<Chapter> CREATOR = new Creator<Chapter>() {
@@ -76,6 +88,12 @@ public class Chapter implements Parcelable {
     public void updateStartTime(int i) {
         startTime = i;
     }
+    public int getDuration() {
+        return duration;
+    }
+    public void updateDuration(int d) {
+        duration = d;
+    }
 
     @Override
     public int describeContents() {
@@ -88,5 +106,20 @@ public class Chapter implements Parcelable {
         parcel.writeString(title);
         parcel.writeString(url);
         parcel.writeInt(startTime);
+        parcel.writeInt(duration);
+    }
+
+    public JSONObject toJson() {
+        JSONObject j = new JSONObject();
+        try {
+            j.put("number", number);
+            j.put("title", title);
+            j.put("url", url);
+            j.put("startTime", startTime);
+            j.put("duration", duration);
+        } catch (Exception e) {
+            Log.d(TAG,"Error converting chapter to Json: ", e);
+        }
+        return j;
     }
 }
