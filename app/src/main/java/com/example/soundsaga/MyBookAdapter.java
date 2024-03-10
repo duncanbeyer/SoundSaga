@@ -33,6 +33,7 @@ public class MyBookAdapter extends RecyclerView.Adapter<MyBookViewHolder> {
                         LayoutInflater.from(parent.getContext()), parent, false);
 
         binding.getRoot().setOnClickListener(booksActivity);
+        binding.getRoot().setOnLongClickListener(booksActivity);
         return new MyBookViewHolder(binding);
 
     }

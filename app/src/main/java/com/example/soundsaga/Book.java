@@ -139,4 +139,13 @@ public class Book  implements Parcelable {
         this.lastReadDate =dateFormat.format(currentDate);
         this.lastReadTime = timeFormat.format(currentTime);
     }
+
+    public void refresh() {
+
+        chapter = 0;
+        lastReadDate = "";
+        lastReadTime = "";
+        audio.refresh();
+
+    }
 }

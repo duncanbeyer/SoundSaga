@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -22,6 +23,12 @@ import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
 
+import java.io.BufferedReader;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity
@@ -64,6 +71,7 @@ public class MainActivity extends AppCompatActivity
             loadFile();
             adapter.notifyDataSetChanged();
         }
+//        clearFile();
     }
 
     void openMyBooks() {
@@ -80,6 +88,7 @@ public class MainActivity extends AppCompatActivity
         for (Book book : myBooks) {
             audios.add(book.getAudio());
         }
+        saveFile();
         adapter.notifyDataSetChanged();
 
     }
@@ -102,7 +111,20 @@ public class MainActivity extends AppCompatActivity
                 };
 
         queue.add(jsonArrayRequest);
+    }
 
+    void clearFile() {
+        try {
+            FileOutputStream fos = getApplicationContext().openFileOutput("Docs.json", Context.MODE_PRIVATE);
+            OutputStreamWriter writer = new OutputStreamWriter(fos, StandardCharsets.UTF_8);
+
+
+            writer.write("");
+            writer.close();
+            fos.close();
+        } catch (Exception e) {
+            Log.d(TAG,"Exception saving file: ", e);
+        }
     }
 
     private void jsonToArr(JSONArray arr) {
@@ -111,12 +133,8 @@ public class MainActivity extends AppCompatActivity
             Log.d(TAG,"length of arr: " + arr.length());
 
             for (int i = 0;i < arr.length();i++) {
-                Log.d(TAG,"get json: " + (arr.getJSONObject(i) == null));
                 audios.add(new Audio(arr.getJSONObject(i)));
-                Log.d(TAG,"audio checkpoint");
-                Log.d(TAG,"Audio: " + audios.get(i));
                 myBooks.add(new Book(audios.get(i)));
-                Log.d(TAG,"book checkpoint");
             }
         } catch (Exception e) {
             Log.e(TAG, "Exception loading JSON: " + e);
@@ -195,43 +213,49 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void loadFile() {
-//        myBooks = new ArrayList<>();
-//        try {
-//            InputStream is = getApplicationContext().openFileInput("Docs.json");
-//            BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
-//            StringBuilder sb = new StringBuilder();
-//            String line;
-//            while ((line = reader.readLine()) != null) {
-//                sb.append(line);
-//            }
-//            JSONArray arr = new JSONArray(sb.toString());
-//            for (int i = 0; i < arr.length();i++) {
-//                loadedBooks.add(new Book(arr.getJSONObject(i)));
-//            }
-//            is.close();
-//        } catch (Exception e) {}
-//        downloadData();
+        myBooks = new ArrayList<>();
+        try {
+            InputStream is = getApplicationContext().openFileInput("Docs.json");
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line);
+            }
+            Log.d(TAG,"Saved data: " + sb);
+            JSONArray arr = new JSONArray(sb.toString());
+            for (int i = 0; i < arr.length();i++) {
+                loadedBooks.add(new Book(arr.getJSONObject(i)));
+            }
+            is.close();
+        } catch (Exception e) {}
         downloadData();
+//        downloadData();
 
     }
 
     void saveFile() {
-//        try {
-//            FileOutputStream fos = getApplicationContext().openFileOutput("Docs.json", Context.MODE_PRIVATE);
-//            OutputStreamWriter writer = new OutputStreamWriter(fos, StandardCharsets.UTF_8);
-//
-//            JSONArray jsonArray = new JSONArray();
-//
-//            for (Book book : myBooks) {
-//                jsonArray.put(book.toJson());
-//            }
-//            String jsonString = jsonArray.toString();
-//            writer.write(jsonString);
-//            writer.close();
-//            fos.close();
-//        } catch (Exception e) {
-//            Log.d(TAG,"Exception saving file: ", e);
-//        }
+        try {
+            FileOutputStream fos = getApplicationContext().openFileOutput("Docs.json", Context.MODE_PRIVATE);
+            OutputStreamWriter writer = new OutputStreamWriter(fos, StandardCharsets.UTF_8);
+
+            JSONArray jsonArray = new JSONArray();
+
+            for (Book book : myBooks) {
+                jsonArray.put(book.toJson());
+            }
+            for (int i = 0;i < myBooks.size();i++) {
+                if (!myBooks.get(i).getLastReadDate().equals("")) {
+                    jsonArray.put(myBooks.get(i).toJson());
+                }
+            }
+            String jsonString = jsonArray.toString();
+            writer.write(jsonString);
+            writer.close();
+            fos.close();
+        } catch (Exception e) {
+            Log.d(TAG,"Exception saving file: ", e);
+        }
     }
 
 

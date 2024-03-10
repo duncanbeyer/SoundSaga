@@ -143,6 +143,8 @@ public class AudioBookAdapter extends RecyclerView.Adapter<AudioPageHolder>{
 
         setupSpeedMenu();
 
+        holder.binding.progress.setText(getTimeStamp(chapter.getStartTime()));
+        holder.binding.duration.setText(getTimeStamp(chapter.getDuration()));
         progresses.add(position, holder.binding.progress);
         durations.add(position, holder.binding.duration);
 
@@ -160,6 +162,8 @@ public class AudioBookAdapter extends RecyclerView.Adapter<AudioPageHolder>{
                         player.seekTo(progress);
                     }
                 });
+        seekBar.setMax(player.getDuration());
+
 
         setArrowVisibility();
 
@@ -238,16 +242,20 @@ public class AudioBookAdapter extends RecyclerView.Adapter<AudioPageHolder>{
             player.reset();
             player.setDataSource(url);
             player.prepare();
-            seekBar.setMax(player.getDuration());
+            if (seekBar != null) {
+                seekBar.setMax(player.getDuration());
+            }
             player.seekTo(startTime);
+            seekBar.setProgress(startTime);
             player.start();
             player.setPlaybackParams(player.getPlaybackParams().setSpeed(speed));
+            Log.d(TAG,"startTime is " + startTime + " duration is " + player.getDuration());
 
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        seekBar.setProgress(startTime);
+
         timerCounter();
         player.pause();
 
@@ -260,9 +268,15 @@ public class AudioBookAdapter extends RecyclerView.Adapter<AudioPageHolder>{
             public void run() {
                 act.runOnUiThread(() -> {
                     if (player != null && player.isPlaying()) {
-                        seekBar.setProgress(player.getCurrentPosition());
-                        progresses.get(pageNum).setText(getTimeStamp(player.getCurrentPosition()));
-                        durations.get(pageNum).setText(getTimeStamp(player.getDuration()));
+                        if (seekBar != null) {
+                            seekBar.setProgress(player.getCurrentPosition());
+                        }
+                        if (progresses.size() > pageNum) {
+                            progresses.get(pageNum).setText(getTimeStamp(player.getCurrentPosition()));
+                        }
+                        if (durations.size() > pageNum) {
+                            durations.get(pageNum).setText(getTimeStamp(player.getDuration()));
+                        }
                     }
                 });
             }
@@ -290,7 +304,6 @@ public class AudioBookAdapter extends RecyclerView.Adapter<AudioPageHolder>{
         if (position == pageNum && player.isPlaying()) return;
 
         player.stop();
-        saveProgress(pageNum);
 
         if (position == -1) {
             chapters.get(pageNum).updateStartTime(0);

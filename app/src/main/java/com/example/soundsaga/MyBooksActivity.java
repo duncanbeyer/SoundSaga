@@ -1,11 +1,17 @@
 package com.example.soundsaga;
 
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.os.Bundle;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.style.StyleSpan;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 
@@ -62,12 +68,58 @@ public class MyBooksActivity extends AppCompatActivity
         Intent intent = new Intent(this, AudioBookActivity.class);
         intent.putExtra("books", allBooks);
         int index = indices.get(i);
+        Log.d(TAG,"start time (in goOn) should be " + allBooks.get(index).getAudio().getChapter(allBooks.get(i).getChapter()).getStartTime());
         intent.putExtra("index", index);
         startActivity(intent);
     }
 
     @Override
     public boolean onLongClick(View view) {
+        doDialog(binding.recycler.getChildLayoutPosition(view));
         return false;
     }
+
+    void doDialog(int ind) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        SpannableString spannableString = new SpannableString("Remove your book history for " + booksWithData.get(ind).getAudio().getTitle() + "?");
+
+        int startIndex = 29;
+        int endIndex = spannableString.length()-1;
+        spannableString.setSpan(new StyleSpan(Typeface.ITALIC), startIndex, endIndex, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+        builder.setMessage(spannableString);
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                booksWithData.remove(ind);
+                adapter.notifyDataSetChanged();
+                refreshBook(indices.get(ind));
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+        AlertDialog dialog = builder.create();
+        dialog.show();
+
+    }
+
+    void refreshBook(int index) {
+        Book book = allBooks.get(index);
+        book.refresh();
+        allBooks.set(index, book);
+    }
+
+    @Override
+    public void onBackPressed() {
+
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.putExtra("books", allBooks);
+        startActivity(intent);
+    }
+
 }

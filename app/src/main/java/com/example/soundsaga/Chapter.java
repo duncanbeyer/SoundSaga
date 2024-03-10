@@ -122,4 +122,9 @@ public class Chapter implements Parcelable {
         }
         return j;
     }
+
+    public void resetVals() {
+        startTime = 0;
+        duration = 0;
+    }
 }

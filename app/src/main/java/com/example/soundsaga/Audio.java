@@ -192,5 +192,14 @@ public class Audio implements Parcelable {
         return j;
     }
 
+    public void refresh() {
+        Chapter chapter;
+        for (int i = 0; i < myChapters.size(); i++) {
+            chapter = myChapters.get(i);
+            chapter.resetVals();
+            myChapters.set(i,chapter);
+        }
+    }
+
 
 }
