@@ -49,13 +49,21 @@ public class AudioBookAdapter extends RecyclerView.Adapter<AudioPageHolder>{
     ImageView backArrow;
     ImageView forwardArrow;
     TextView speedText;
+    boolean flag;
+    boolean isFirst = true;
 
-    public AudioBookAdapter(AudioBookActivity act, ArrayList<Chapter> chapters, Audio a, MediaPlayer player, ViewPager2 viewPager) {
+    public AudioBookAdapter(AudioBookActivity act, ArrayList<Chapter> chapters, Audio a, MediaPlayer player, ViewPager2 viewPager, boolean flag) {
          this.chapters.addAll(chapters);
          this.act = act;
          this.audio = a;
          this.player = player;
          this.viewPager = viewPager;
+         this.flag = flag; // true means coming from myBooks
+
+         for (int i = 0;i < this.chapters.size();i++) {
+             progresses.add(new TextView(act));
+             durations.add(new TextView(act));
+         }
     }
     @NonNull
     @Override
@@ -71,6 +79,9 @@ public class AudioBookAdapter extends RecyclerView.Adapter<AudioPageHolder>{
     @Override
     public void onBindViewHolder(@NonNull AudioPageHolder holder, int position) {
         Chapter chapter = chapters.get(position);
+
+        seekBar = holder.binding.seekBar;
+
 
         holder.binding.title.setText(audio.getTitle());
 
@@ -119,11 +130,20 @@ public class AudioBookAdapter extends RecyclerView.Adapter<AudioPageHolder>{
         }
         backArrow = holder.binding.backArrow;
 
-        holder.binding.playPause.setImageResource(R.drawable.play);
+        if (flag && isFirst) {
+            isFirst = false;
+            holder.binding.playPause.setImageResource(R.drawable.pause);
+            // if coming from MainActivity or not the first chapter
+        }
+        else {
+            holder.binding.playPause.setImageResource(R.drawable.play);
+        }
+
+
         holder.binding.playPause.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                doPlayPause(holder.binding.playPause);
+                doPlayPause(holder.binding.playPause, holder.binding.seekBar);
             }
         });
 
@@ -145,10 +165,9 @@ public class AudioBookAdapter extends RecyclerView.Adapter<AudioPageHolder>{
 
         holder.binding.progress.setText(getTimeStamp(chapter.getStartTime()));
         holder.binding.duration.setText(getTimeStamp(chapter.getDuration()));
-        progresses.add(position, holder.binding.progress);
-        durations.add(position, holder.binding.duration);
+        progresses.set(position, holder.binding.progress);
+        durations.set(position, holder.binding.duration);
 
-        seekBar = holder.binding.seekBar;
 
         seekBar.setOnSeekBarChangeListener(
                 new SeekBar.OnSeekBarChangeListener() {
@@ -162,8 +181,11 @@ public class AudioBookAdapter extends RecyclerView.Adapter<AudioPageHolder>{
                         player.seekTo(progress);
                     }
                 });
-        seekBar.setMax(player.getDuration());
-
+        if (seekBar != null) {
+            holder.binding.seekBar.setMax(player.getDuration());
+            holder.binding.seekBar.setProgress(player.getCurrentPosition());
+            Log.d(TAG,"seekbar not null for chapter " + chapters.get(position).getTitle());
+        }
 
         setArrowVisibility();
 
@@ -174,12 +196,19 @@ public class AudioBookAdapter extends RecyclerView.Adapter<AudioPageHolder>{
         return chapters.size();
     }
 
-    public void doPlayPause(ImageView button) {
+    public void doPlayPause(ImageView button, SeekBar seekBarr) {
         if (player.isPlaying()) {
             player.pause();
             button.setImageResource(R.drawable.play);
         } else {
             player.start();
+            if (seekBarr != null) {
+                seekBarr.setMax(player.getDuration());
+                seekBarr.setProgress(player.getCurrentPosition());
+            }
+            else {
+                Log.d(TAG,"seekbarr null in doPlayPause");
+            }
             button.setImageResource(R.drawable.pause);
         }
     }
@@ -242,11 +271,14 @@ public class AudioBookAdapter extends RecyclerView.Adapter<AudioPageHolder>{
             player.reset();
             player.setDataSource(url);
             player.prepare();
+            player.seekTo(startTime);
             if (seekBar != null) {
                 seekBar.setMax(player.getDuration());
+                seekBar.setProgress(startTime);
             }
-            player.seekTo(startTime);
-            seekBar.setProgress(startTime);
+            else {
+                Log.d(TAG,"seekBar null in playIt");
+            }
             player.start();
             player.setPlaybackParams(player.getPlaybackParams().setSpeed(speed));
             Log.d(TAG,"startTime is " + startTime + " duration is " + player.getDuration());
@@ -254,10 +286,10 @@ public class AudioBookAdapter extends RecyclerView.Adapter<AudioPageHolder>{
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-
         timerCounter();
-        player.pause();
+        if (!flag || !isFirst) {
+            player.pause();
+        }
 
     }
 
@@ -270,6 +302,9 @@ public class AudioBookAdapter extends RecyclerView.Adapter<AudioPageHolder>{
                     if (player != null && player.isPlaying()) {
                         if (seekBar != null) {
                             seekBar.setProgress(player.getCurrentPosition());
+                        }
+                        else {
+                            Log.d(TAG,"seekbar null in timerCounter");
                         }
                         if (progresses.size() > pageNum) {
                             progresses.get(pageNum).setText(getTimeStamp(player.getCurrentPosition()));
@@ -303,6 +338,9 @@ public class AudioBookAdapter extends RecyclerView.Adapter<AudioPageHolder>{
     void switchChapters(int position) {
         if (position == pageNum && player.isPlaying()) return;
 
+        chapters.get(pageNum).updateStartTime(0);
+        chapters.get(pageNum).updateDuration(0);
+
         player.stop();
 
         if (position == -1) {
@@ -322,11 +360,11 @@ public class AudioBookAdapter extends RecyclerView.Adapter<AudioPageHolder>{
 
         playIt(chapters.get(pageNum).getUrl(), chapters.get(pageNum).getStartTime(), position);
 
+        Log.d(TAG,"Just switched chapters to " + chapters.get(pageNum).getTitle());
     }
 
     void setArrowVisibility() {
         if (pageNum == 0) {
-            Log.d(TAG,"back arrow: invisible");
             backArrow.setVisibility(View.INVISIBLE);
         }
         else if (pageNum == chapters.size()-1) {
@@ -334,7 +372,6 @@ public class AudioBookAdapter extends RecyclerView.Adapter<AudioPageHolder>{
         }
         else {
             if (backArrow.getVisibility() == View.INVISIBLE) {
-                Log.d(TAG,"back arrow: visible");
                 backArrow.setVisibility(View.VISIBLE);
             }
             if (forwardArrow.getVisibility() == View.INVISIBLE) {
@@ -343,7 +380,6 @@ public class AudioBookAdapter extends RecyclerView.Adapter<AudioPageHolder>{
         }
     }
     void saveProgress(int i) {
-        Log.d(TAG,"Saving progress, i is " + i);
         chapters.get(i).updateStartTime(player.getCurrentPosition());
         if (chapters.get(i).getDuration() == 0) {
             chapters.get(i).updateDuration(player.getDuration());

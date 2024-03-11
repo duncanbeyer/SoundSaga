@@ -30,6 +30,7 @@ public class AudioBookActivity extends AppCompatActivity {
     Book book;
     int index;
     ArrayList<Book> books;
+    boolean flag;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -48,13 +49,24 @@ public class AudioBookActivity extends AppCompatActivity {
             Log.d(TAG,"Error getting books in AudioBookActivity onCreate: ", e);
         }
 
+
         book = books.get(index);
         audio = book.getAudio();
         chapters = audio.getMyChapters();
 
-        Log.d(TAG,"Book data:");
-        Log.d(TAG,"Last chapter: " + book.getChapter());
-        Log.d(TAG,"Progress: " + chapters.get(book.getChapter()).getStartTime());
+        try {
+            flag = getIntent().getBooleanExtra("flag", false);
+            if(!flag) { // if coming from mainActivity, always refresh
+                book.refresh();
+                books.set(index,book);
+            }
+        } catch (Exception e) {
+            Log.d(TAG,"Error getting books in AudioBookActivity onCreate: ", e);
+        }
+
+//        Log.d(TAG,"Book data:");
+//        Log.d(TAG,"Last chapter: " + book.getChapter());
+//        Log.d(TAG,"Progress: " + chapters.get(book.getChapter()).getStartTime());
 
         progress = binding.viewPager.findViewById(R.id.progress);
         duration = binding.viewPager.findViewById(R.id.duration);
@@ -65,7 +77,7 @@ public class AudioBookActivity extends AppCompatActivity {
             adapter.switchChapters(-1);
         });
 
-        adapter = new AudioBookAdapter(this, chapters, audio, player, binding.viewPager);
+        adapter = new AudioBookAdapter(this, chapters, audio, player, binding.viewPager, flag);
 
         binding.viewPager.setAdapter(adapter);
         binding.viewPager.setOrientation(ViewPager2.ORIENTATION_HORIZONTAL);
@@ -73,7 +85,6 @@ public class AudioBookActivity extends AppCompatActivity {
             @Override
             public void onPageSelected(int position) {
                 adapter.switchChapters(position);
-                Log.d(TAG,"Switching chapters");
             }
         });
         binding.viewPager.setCurrentItem(book.getChapter());
@@ -81,15 +92,24 @@ public class AudioBookActivity extends AppCompatActivity {
     }
 
     public void back() {
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.putExtra("books", books);
-        startActivity(intent);
+
+        if (flag) {
+            Intent intent = new Intent(this, MyBooksActivity.class);
+            intent.putExtra("books", books);
+            startActivity(intent);
+        }
+        else {
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.putExtra("books", books);
+            startActivity(intent);
+        }
+
+
     }
 
     public void saveData() {
 
         audio.saveChapters(chapters);
-        Log.d(TAG,"after saving chapters size is " + audio.getMyChapters().size());
         book.save(audio, adapter.pageNum);
         books.set(index, book);
 

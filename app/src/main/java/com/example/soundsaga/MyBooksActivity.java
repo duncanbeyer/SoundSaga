@@ -70,6 +70,7 @@ public class MyBooksActivity extends AppCompatActivity
         int index = indices.get(i);
         Log.d(TAG,"start time (in goOn) should be " + allBooks.get(index).getAudio().getChapter(allBooks.get(i).getChapter()).getStartTime());
         intent.putExtra("index", index);
+        intent.putExtra("flag", true);
         startActivity(intent);
     }
 

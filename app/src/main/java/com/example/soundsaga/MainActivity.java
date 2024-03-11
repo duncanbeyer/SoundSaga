@@ -175,6 +175,7 @@ public class MainActivity extends AppCompatActivity
         Intent intent = new Intent(this, AudioBookActivity.class);
         intent.putExtra("books", myBooks);
         intent.putExtra("index", i);
+        intent.putExtra("flag", false);
         startActivity(intent);
     }
 
