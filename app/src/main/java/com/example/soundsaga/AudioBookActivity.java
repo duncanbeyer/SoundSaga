@@ -77,7 +77,7 @@ public class AudioBookActivity extends AppCompatActivity {
             adapter.switchChapters(-1);
         });
 
-        adapter = new AudioBookAdapter(this, chapters, audio, player, binding.viewPager, flag);
+        adapter = new AudioBookAdapter(this, chapters, audio, player, binding.viewPager, flag, book.getChapter(), book.getSpeed());
 
         binding.viewPager.setAdapter(adapter);
         binding.viewPager.setOrientation(ViewPager2.ORIENTATION_HORIZONTAL);
@@ -110,7 +110,7 @@ public class AudioBookActivity extends AppCompatActivity {
     public void saveData() {
 
         audio.saveChapters(chapters);
-        book.save(audio, adapter.pageNum);
+        book.save(audio, adapter.pageNum, adapter.speed);
         books.set(index, book);
 
     }

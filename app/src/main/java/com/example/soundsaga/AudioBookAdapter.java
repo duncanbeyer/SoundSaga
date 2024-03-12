@@ -4,6 +4,8 @@ import static android.view.View.INVISIBLE;
 import static android.view.View.VISIBLE;
 
 import android.media.MediaPlayer;
+import android.text.SpannableString;
+import android.text.style.UnderlineSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -37,6 +39,7 @@ public class AudioBookAdapter extends RecyclerView.Adapter<AudioPageHolder>{
     private Timer timer;
     private ArrayList<TextView> progresses = new ArrayList<>();
     private ArrayList<TextView> durations = new ArrayList<>();
+    private ArrayList<TextView> speeds = new ArrayList<>();
 
     SeekBar seekBar;
 
@@ -51,18 +54,26 @@ public class AudioBookAdapter extends RecyclerView.Adapter<AudioPageHolder>{
     TextView speedText;
     boolean flag;
     boolean isFirst = true;
+    int startChapter = 0;
 
-    public AudioBookAdapter(AudioBookActivity act, ArrayList<Chapter> chapters, Audio a, MediaPlayer player, ViewPager2 viewPager, boolean flag) {
+    public AudioBookAdapter(AudioBookActivity act, ArrayList<Chapter> chapters, Audio a, MediaPlayer player, ViewPager2 viewPager, boolean flag, int startChapter, float speed) {
          this.chapters.addAll(chapters);
          this.act = act;
          this.audio = a;
          this.player = player;
          this.viewPager = viewPager;
          this.flag = flag; // true means coming from myBooks
-
+         this.startChapter = startChapter;
+         this.speed = speed;
+         String temp;
          for (int i = 0;i < this.chapters.size();i++) {
              progresses.add(new TextView(act));
              durations.add(new TextView(act));
+             speeds.add(new TextView(act));
+             temp = speed + "x";
+             SpannableString content = new SpannableString(temp);
+             content.setSpan(new UnderlineSpan(), 0, content.length(), 0);
+             speeds.get(i).setText(content);
          }
     }
     @NonNull
@@ -82,16 +93,24 @@ public class AudioBookAdapter extends RecyclerView.Adapter<AudioPageHolder>{
 
         seekBar = holder.binding.seekBar;
 
-
         holder.binding.title.setText(audio.getTitle());
 
         holder.binding.chapter.setText(chapter.getTitle() + "(" + (position+1) + " of " + chapters.size() + ")");
+//        if (!holder.binding.chapter.isSelected()) {
+//            holder.binding.chapter.setSelected(true);
+//        }
 
         Picasso.get().load(audio.getImage()).into(holder.binding.cover);
 
         speedText = holder.binding.speedText;
 
-        speedText.setText(String.valueOf(speed) + 'x');
+        String temp = speed + "x";
+        Log.d(TAG,temp);
+        SpannableString content = new SpannableString(temp);
+        content.setSpan(new UnderlineSpan(), 0, content.length(), 0);
+        Log.d(TAG, String.valueOf(content));
+        Log.d(TAG, String.valueOf(content.length()));
+        speeds.get(pageNum).setText(content);
         holder.binding.speedText.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -104,6 +123,7 @@ public class AudioBookAdapter extends RecyclerView.Adapter<AudioPageHolder>{
             public void onClick(View v) {
                 if (viewPager.getCurrentItem() != chapters.size()-1) {
                     int nextItem = viewPager.getCurrentItem() + 1;
+                    holder.binding.seekBar.setProgress(0);
                     viewPager.setCurrentItem(nextItem, true);
                 }
             }
@@ -120,6 +140,7 @@ public class AudioBookAdapter extends RecyclerView.Adapter<AudioPageHolder>{
             public void onClick(View v) {
                 if (viewPager.getCurrentItem() != 0) {
                     int nextItem = viewPager.getCurrentItem() - 1;
+                    holder.binding.seekBar.setProgress(0);
                     viewPager.setCurrentItem(nextItem, true);
                 }
             }
@@ -130,7 +151,8 @@ public class AudioBookAdapter extends RecyclerView.Adapter<AudioPageHolder>{
         }
         backArrow = holder.binding.backArrow;
 
-        if (flag && isFirst) {
+        Log.d(TAG,"in position " + position + " binding flag is " + flag + " and isFirst is " + isFirst + " for startChapter " + startChapter);
+        if (flag && isFirst && (position == startChapter)) {
             isFirst = false;
             holder.binding.playPause.setImageResource(R.drawable.pause);
             // if coming from MainActivity or not the first chapter
@@ -161,13 +183,13 @@ public class AudioBookAdapter extends RecyclerView.Adapter<AudioPageHolder>{
             }
         });
 
-        setupSpeedMenu();
+        setupSpeedMenu(position);
 
         holder.binding.progress.setText(getTimeStamp(chapter.getStartTime()));
         holder.binding.duration.setText(getTimeStamp(chapter.getDuration()));
         progresses.set(position, holder.binding.progress);
         durations.set(position, holder.binding.duration);
-
+        speeds.set(position, holder.binding.speedText);
 
         seekBar.setOnSeekBarChangeListener(
                 new SeekBar.OnSeekBarChangeListener() {
@@ -237,7 +259,7 @@ public class AudioBookAdapter extends RecyclerView.Adapter<AudioPageHolder>{
         popupMenu.show();
     }
 
-    private void setupSpeedMenu() {
+    private void setupSpeedMenu(int position) {
         popupMenu = new PopupMenu(act, speedText);
         popupMenu.getMenuInflater().inflate(R.menu.speed_popup, popupMenu.getMenu());
         popupMenu.setOnMenuItemClickListener(menuItem -> {
@@ -257,9 +279,9 @@ public class AudioBookAdapter extends RecyclerView.Adapter<AudioPageHolder>{
                 speed = 2f;
             }
 
-            speedText.setText(menuItem.getTitle());
 
             player.setPlaybackParams(player.getPlaybackParams().setSpeed(speed));
+            player.pause();
             return true;
         });
     }
@@ -306,12 +328,12 @@ public class AudioBookAdapter extends RecyclerView.Adapter<AudioPageHolder>{
                         else {
                             Log.d(TAG,"seekbar null in timerCounter");
                         }
-                        if (progresses.size() > pageNum) {
-                            progresses.get(pageNum).setText(getTimeStamp(player.getCurrentPosition()));
-                        }
-                        if (durations.size() > pageNum) {
-                            durations.get(pageNum).setText(getTimeStamp(player.getDuration()));
-                        }
+                        progresses.get(pageNum).setText(getTimeStamp(player.getCurrentPosition()));
+                        durations.get(pageNum).setText(getTimeStamp(player.getDuration()));
+                        String temp = speed + "x";
+                        SpannableString content = new SpannableString(temp);
+                        content.setSpan(new UnderlineSpan(), 0, content.length(), 0);
+                        speeds.get(pageNum).setText(content);
                     }
                 });
             }

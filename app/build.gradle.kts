@@ -37,6 +37,7 @@ dependencies {
     implementation("com.google.android.material:material:1.11.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     testImplementation("junit:junit:4.13.2")
+    implementation("androidx.core:core-splashscreen:1.0.1")
     implementation ("com.android.volley:volley:1.2.1")
     implementation("com.squareup.picasso:picasso:2.8")
     implementation("androidx.cardview:cardview:1.0.0")

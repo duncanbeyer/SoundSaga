@@ -10,12 +10,14 @@ import android.text.style.StyleSpan;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 
 import com.example.soundsaga.databinding.ActivityMyBooksBinding;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
@@ -81,15 +83,22 @@ public class MyBooksActivity extends AppCompatActivity
     }
 
     void doDialog(int ind) {
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        View dialogView = getLayoutInflater().inflate(R.layout.delete_alert, null);
+        ImageView thumbnailImageView = dialogView.findViewById(R.id.thumbnail);
+        TextView title = dialogView.findViewById(R.id.title);
+        builder.setView(dialogView);
 
         SpannableString spannableString = new SpannableString("Remove your book history for " + booksWithData.get(ind).getAudio().getTitle() + "?");
 
         int startIndex = 29;
         int endIndex = spannableString.length()-1;
         spannableString.setSpan(new StyleSpan(Typeface.ITALIC), startIndex, endIndex, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        Picasso.get().load(booksWithData.get(ind).getAudio().getImage()).into(thumbnailImageView);
 
-        builder.setMessage(spannableString);
+        title.setText(spannableString);
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -104,6 +113,7 @@ public class MyBooksActivity extends AppCompatActivity
                 dialog.dismiss();
             }
         });
+
         AlertDialog dialog = builder.create();
         dialog.show();
 

@@ -16,6 +16,7 @@ public class Book  implements Parcelable {
     private int chapter = 0;
     private String lastReadDate = "";
     private String lastReadTime = "";
+    private float speed = 1f;
     private Audio audio;
 
     public Book(Audio a) {
@@ -47,6 +48,11 @@ public class Book  implements Parcelable {
             lastReadTime = "";
         }
         try {
+            speed = (float) j.getDouble("lastReadTime");
+        } catch (Exception e) {
+            speed= 1f;
+        }
+        try {
             audio = new Audio(j.getJSONObject("audio"));
             if (audio == (null)) {
                 throw new Exception();
@@ -61,6 +67,7 @@ public class Book  implements Parcelable {
         lastReadDate = in.readString();
         lastReadTime = in.readString();
         audio = in.readParcelable(Audio.class.getClassLoader());
+        speed = in.readFloat();
     }
 
     public static final Creator<Book> CREATOR = new Creator<Book>() {
@@ -100,6 +107,9 @@ public class Book  implements Parcelable {
     public Audio getAudio() {
         return audio;
     }
+    public float getSpeed() {
+        return speed;
+    }
     @Override
     public int describeContents() {
         return 0;
@@ -111,6 +121,7 @@ public class Book  implements Parcelable {
         parcel.writeString(lastReadDate);
         parcel.writeString(lastReadTime);
         parcel.writeParcelable(audio, i);
+        parcel.writeFloat(speed);
     }
 
     public JSONObject toJson() {
@@ -121,6 +132,7 @@ public class Book  implements Parcelable {
             j.put("lastReadDate", lastReadDate);
             j.put("lastReadTime", lastReadTime);
             j.put("audio", audio.toJson());
+            j.put("speed", speed);
 
         } catch (Exception e) {
             Log.d(TAG,"Exception converting Book to Json: ", e);
@@ -129,7 +141,7 @@ public class Book  implements Parcelable {
         return j;
     }
 
-    public void save(Audio audio, int chapter) {
+    public void save(Audio audio, int chapter, float speed) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
         Date currentDate = new Date();
         SimpleDateFormat timeFormat = new SimpleDateFormat("hh:mm");
@@ -138,6 +150,7 @@ public class Book  implements Parcelable {
         this.chapter = chapter;
         this.lastReadDate =dateFormat.format(currentDate);
         this.lastReadTime = timeFormat.format(currentTime);
+        this.speed = speed;
     }
 
     public void refresh() {
@@ -146,6 +159,6 @@ public class Book  implements Parcelable {
         lastReadDate = "";
         lastReadTime = "";
         audio.refresh();
-
+        speed = 1f;
     }
 }

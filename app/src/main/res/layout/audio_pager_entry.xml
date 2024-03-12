@@ -67,13 +67,16 @@
 
     <TextView
         android:id="@+id/chapter"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:textSize="18sp"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
         android:ellipsize="marquee"
         android:layout_marginTop="19dp"
         android:marqueeRepeatLimit="marquee_forever"
         android:scrollHorizontally="true"
+        android:freezesText="true"
         android:singleLine="true"
         android:text="Chapter 2 [2 of 9]"
         android:textStyle="bold"
@@ -97,7 +100,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-
         android:onClick="speedClick"
         android:text="1x"
         android:textSize="18sp"
