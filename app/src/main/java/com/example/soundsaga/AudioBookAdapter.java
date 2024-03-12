@@ -42,7 +42,6 @@ public class AudioBookAdapter extends RecyclerView.Adapter<AudioPageHolder>{
     private ArrayList<TextView> speeds = new ArrayList<>();
 
     SeekBar seekBar;
-
     MediaPlayer player;
     float speed = 1f;
     Audio audio;
@@ -55,6 +54,8 @@ public class AudioBookAdapter extends RecyclerView.Adapter<AudioPageHolder>{
     boolean flag;
     boolean isFirst = true;
     int startChapter = 0;
+    boolean doWipe = false;
+    boolean isFirstInPlayIt = true;
 
     public AudioBookAdapter(AudioBookActivity act, ArrayList<Chapter> chapters, Audio a, MediaPlayer player, ViewPager2 viewPager, boolean flag, int startChapter, float speed) {
          this.chapters.addAll(chapters);
@@ -90,6 +91,7 @@ public class AudioBookAdapter extends RecyclerView.Adapter<AudioPageHolder>{
     @Override
     public void onBindViewHolder(@NonNull AudioPageHolder holder, int position) {
         Chapter chapter = chapters.get(position);
+        Log.d(TAG,"at beginning of onBindViewHolder startTime is " + chapter.getStartTime());
 
         seekBar = holder.binding.seekBar;
 
@@ -102,15 +104,9 @@ public class AudioBookAdapter extends RecyclerView.Adapter<AudioPageHolder>{
 
         Picasso.get().load(audio.getImage()).into(holder.binding.cover);
 
-        speedText = holder.binding.speedText;
-
         String temp = speed + "x";
         Log.d(TAG,temp);
-        SpannableString content = new SpannableString(temp);
-        content.setSpan(new UnderlineSpan(), 0, content.length(), 0);
-        Log.d(TAG, String.valueOf(content));
-        Log.d(TAG, String.valueOf(content.length()));
-        speeds.get(pageNum).setText(content);
+
         holder.binding.speedText.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -183,13 +179,19 @@ public class AudioBookAdapter extends RecyclerView.Adapter<AudioPageHolder>{
             }
         });
 
-        setupSpeedMenu(position);
 
         holder.binding.progress.setText(getTimeStamp(chapter.getStartTime()));
         holder.binding.duration.setText(getTimeStamp(chapter.getDuration()));
         progresses.set(position, holder.binding.progress);
         durations.set(position, holder.binding.duration);
         speeds.set(position, holder.binding.speedText);
+        SpannableString content = new SpannableString(temp);
+        content.setSpan(new UnderlineSpan(), 0, content.length(), 0);
+        Log.d(TAG, String.valueOf(content));
+        Log.d(TAG, String.valueOf(content.length()));
+        speeds.get(position).setText(content);
+
+        setupSpeedMenu(position, speeds.get(position));
 
         seekBar.setOnSeekBarChangeListener(
                 new SeekBar.OnSeekBarChangeListener() {
@@ -259,7 +261,7 @@ public class AudioBookAdapter extends RecyclerView.Adapter<AudioPageHolder>{
         popupMenu.show();
     }
 
-    private void setupSpeedMenu(int position) {
+    private void setupSpeedMenu(int position, TextView speedText) {
         popupMenu = new PopupMenu(act, speedText);
         popupMenu.getMenuInflater().inflate(R.menu.speed_popup, popupMenu.getMenu());
         popupMenu.setOnMenuItemClickListener(menuItem -> {
@@ -309,9 +311,16 @@ public class AudioBookAdapter extends RecyclerView.Adapter<AudioPageHolder>{
             e.printStackTrace();
         }
         timerCounter();
-        if (!flag || !isFirst) {
+        if (flag && isFirstInPlayIt) {
+            isFirstInPlayIt = false;
+            Log.d(TAG,"flag and isFirstInPlayIt");
+        }
+        else {
             player.pause();
         }
+//        if (!flag || !isFirstInPlayIt) {
+//            player.pause();
+//        }
 
     }
 
@@ -360,8 +369,14 @@ public class AudioBookAdapter extends RecyclerView.Adapter<AudioPageHolder>{
     void switchChapters(int position) {
         if (position == pageNum && player.isPlaying()) return;
 
-        chapters.get(pageNum).updateStartTime(0);
-        chapters.get(pageNum).updateDuration(0);
+        if (doWipe) {
+            chapters.get(pageNum).updateStartTime(0);
+            chapters.get(pageNum).updateDuration(0);
+        }
+        else {
+            doWipe = true;
+        }
+
 
         player.stop();
 
@@ -403,6 +418,7 @@ public class AudioBookAdapter extends RecyclerView.Adapter<AudioPageHolder>{
     }
     void saveProgress(int i) {
         chapters.get(i).updateStartTime(player.getCurrentPosition());
+        Log.d(TAG,"chapter " + i + " just set start time to " + player.getCurrentPosition());
         if (chapters.get(i).getDuration() == 0) {
             chapters.get(i).updateDuration(player.getDuration());
         }

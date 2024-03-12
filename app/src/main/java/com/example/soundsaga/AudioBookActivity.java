@@ -57,6 +57,7 @@ public class AudioBookActivity extends AppCompatActivity {
         try {
             flag = getIntent().getBooleanExtra("flag", false);
             if(!flag) { // if coming from mainActivity, always refresh
+                Log.d(TAG,"refreshing book");
                 book.refresh();
                 books.set(index,book);
             }
