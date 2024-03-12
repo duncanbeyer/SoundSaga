@@ -88,17 +88,7 @@ public class Audio implements Parcelable {
     }
 
     public void saveChapters(ArrayList<Chapter> chapters) {
-        Log.d(TAG,"input chapters for save is length " + chapters.size());
-//        while (this.myChapters.size() > 0) {
-//            this.myChapters.remove(0);
-//        }
-//        Log.d(TAG,"input chapters for save is length " + chapters.size());
-//        for (Chapter chapter : chapters) {
-//            this.myChapters.add(chapter);
-//            Log.d(TAG,"just added a chapter");
-//        }
         this.myChapters = chapters;
-        Log.d(TAG,"new chapters size after save: " + chapters.size());
     }
 
     protected Audio(Parcel in) {

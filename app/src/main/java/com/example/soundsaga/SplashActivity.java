@@ -1,15 +1,22 @@
 package com.example.soundsaga;
 
 import android.Manifest;
-import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.style.StyleSpan;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.splashscreen.SplashScreen;
@@ -20,6 +27,7 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
+import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
 
@@ -86,7 +94,7 @@ public class SplashActivity extends AppCompatActivity {
                             jsonToArr(response);
                         },
                         error -> {
-                            Log.e(TAG, "Exception getting JSON data: " + error.getMessage());
+                            doDialog();
                         }) {
                 };
 
@@ -125,6 +133,23 @@ public class SplashActivity extends AppCompatActivity {
         intent.putExtra("books", myBooks);
 
         startActivity(intent);
+    }
+
+    void doDialog() {
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        builder.setTitle("Error Retrieving Audiobook Data. Exiting App.");
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                finish();
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+
     }
 
 

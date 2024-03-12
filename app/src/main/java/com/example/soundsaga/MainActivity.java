@@ -51,14 +51,17 @@ public class MainActivity extends AppCompatActivity
         adapter =
                 new Adapter(this, audios);
         binding.recycler.setAdapter(adapter);
-        binding.recycler.setLayoutManager(
-                new GridLayoutManager(this, 2));
+
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            binding.recycler.setLayoutManager(new GridLayoutManager(this, 4));
+        } else if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+            binding.recycler.setLayoutManager(new GridLayoutManager(this, 2));
+        }
 
         shelfButton = binding.getRoot().findViewById(R.id.shelf);
         shelfButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d(TAG,"opening my books");
                 openMyBooks();
             }
         });
@@ -133,7 +136,6 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onLongClick(View view) {
         int i = binding.recycler.getChildLayoutPosition(view);
-        Log.d(TAG,"onLongClick");
 
         Audio a = myBooks.get(i).getAudio();
 

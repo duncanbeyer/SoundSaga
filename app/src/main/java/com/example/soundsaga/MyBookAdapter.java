@@ -43,11 +43,6 @@ public class MyBookAdapter extends RecyclerView.Adapter<MyBookViewHolder> {
 
         Book book = myBooks.get(position);
         Audio audio = book.getAudio();
-        Log.d(TAG,"audio is null: " + (audio == null));
-        Log.d(TAG,"audio chapters length is " + audio.getMyChapters().size());
-
-        Log.d(TAG,"book.getchapter is " + book.getChapter());
-
         Chapter chapter = audio.getChapter(book.getChapter());
 
         holder.binding.title.setText(book.getAudio().getTitle());

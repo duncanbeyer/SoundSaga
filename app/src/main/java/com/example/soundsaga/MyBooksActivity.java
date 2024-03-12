@@ -1,7 +1,9 @@
 package com.example.soundsaga;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.text.Spannable;
@@ -19,6 +21,11 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import com.example.soundsaga.databinding.ActivityMyBooksBinding;
 import com.squareup.picasso.Picasso;
 
+import org.json.JSONArray;
+
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 public class MyBooksActivity extends AppCompatActivity
@@ -39,8 +46,12 @@ public class MyBooksActivity extends AppCompatActivity
 
         adapter = new MyBookAdapter(this, booksWithData);
         binding.recycler.setAdapter(adapter);
-        binding.recycler.setLayoutManager(
-                new GridLayoutManager(this, 1));
+
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            binding.recycler.setLayoutManager(new GridLayoutManager(this, 2));
+        } else if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+            binding.recycler.setLayoutManager(new GridLayoutManager(this, 1));
+        }
 
         try {
             allBooks = getIntent().getParcelableArrayListExtra("books");
@@ -57,7 +68,7 @@ public class MyBooksActivity extends AppCompatActivity
                 indices.add(i);
             }
         }
-        Log.d(TAG,"books: " + booksWithData);
+        saveFile();
         adapter.notifyDataSetChanged();
     }
 
@@ -70,7 +81,6 @@ public class MyBooksActivity extends AppCompatActivity
         Intent intent = new Intent(this, AudioBookActivity.class);
         intent.putExtra("books", allBooks);
         int index = indices.get(i);
-        Log.d(TAG,"start time (in goOn) should be " + allBooks.get(index).getAudio().getChapter(allBooks.get(i).getChapter()).getStartTime());
         intent.putExtra("index", index);
         intent.putExtra("flag", true);
         startActivity(intent);
@@ -119,10 +129,46 @@ public class MyBooksActivity extends AppCompatActivity
 
     }
 
+    void saveFile() {
+        try {
+            FileOutputStream fos = getApplicationContext().openFileOutput("Docs.json", Context.MODE_PRIVATE);
+            OutputStreamWriter writer = new OutputStreamWriter(fos, StandardCharsets.UTF_8);
+
+            JSONArray jsonArray = new JSONArray();
+
+            for (Book book : allBooks) {
+                jsonArray.put(book.toJson());
+            }
+            for (int i = 0;i < allBooks.size();i++) {
+                if (!allBooks.get(i).getLastReadDate().equals("")) {
+                    jsonArray.put(allBooks.get(i).toJson());
+                }
+            }
+            String jsonString = jsonArray.toString();
+            writer.write(jsonString);
+            writer.close();
+            fos.close();
+        } catch (Exception e) {
+            Log.d(TAG,"Exception saving file: ", e);
+        }
+    }
+
     void refreshBook(int index) {
         Book book = allBooks.get(index);
         book.refresh();
         allBooks.set(index, book);
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            binding.recycler.setLayoutManager(new GridLayoutManager(this, 2));
+        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            binding.recycler.setLayoutManager(new GridLayoutManager(this, 1));
+        }
+
     }
 
     @Override

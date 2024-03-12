@@ -57,17 +57,12 @@ public class AudioBookActivity extends AppCompatActivity {
         try {
             flag = getIntent().getBooleanExtra("flag", false);
             if(!flag) { // if coming from mainActivity, always refresh
-                Log.d(TAG,"refreshing book");
                 book.refresh();
                 books.set(index,book);
             }
         } catch (Exception e) {
             Log.d(TAG,"Error getting books in AudioBookActivity onCreate: ", e);
         }
-
-//        Log.d(TAG,"Book data:");
-//        Log.d(TAG,"Last chapter: " + book.getChapter());
-//        Log.d(TAG,"Progress: " + chapters.get(book.getChapter()).getStartTime());
 
         progress = binding.viewPager.findViewById(R.id.progress);
         duration = binding.viewPager.findViewById(R.id.duration);
