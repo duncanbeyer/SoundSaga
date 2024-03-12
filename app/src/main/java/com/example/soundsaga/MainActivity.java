@@ -40,7 +40,6 @@ public class MainActivity extends AppCompatActivity
     ImageView shelfButton;
     ArrayList<Book> myBooks = new ArrayList<>();
     ArrayList<Audio> audios = new ArrayList<>();
-    ArrayList<Book> loadedBooks = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,8 +67,7 @@ public class MainActivity extends AppCompatActivity
             myBooks = getIntent().getParcelableArrayListExtra("books");
             handleData();
         } catch (Exception e) {
-            loadFile();
-            adapter.notifyDataSetChanged();
+            Log.d(TAG,"exception getting data from splash");
         }
 //        clearFile();
     }
@@ -93,26 +91,6 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-    public void downloadData() {
-
-        RequestQueue queue = Volley.newRequestQueue(this);
-
-        String ex = "https://christopherhield.com/ABooks/abook_contents.json";
-
-        JsonArrayRequest jsonArrayRequest =
-                new JsonArrayRequest(Request.Method.GET, ex,
-                        null,
-                        response -> {
-                            jsonToArr(response);
-                        },
-                        error -> {
-                            Log.e(TAG, "Exception getting JSON data: " + error.getMessage());
-                        }) {
-                };
-
-        queue.add(jsonArrayRequest);
-    }
-
     void clearFile() {
         try {
             FileOutputStream fos = getApplicationContext().openFileOutput("Docs.json", Context.MODE_PRIVATE);
@@ -125,33 +103,6 @@ public class MainActivity extends AppCompatActivity
         } catch (Exception e) {
             Log.d(TAG,"Exception saving file: ", e);
         }
-    }
-
-    private void jsonToArr(JSONArray arr) {
-        myBooks = new ArrayList<>();
-        try {
-            Log.d(TAG,"length of arr: " + arr.length());
-
-            for (int i = 0;i < arr.length();i++) {
-                audios.add(new Audio(arr.getJSONObject(i)));
-                myBooks.add(new Book(audios.get(i)));
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "Exception loading JSON: " + e);
-        }
-        if (loadedBooks.size() > 0) {
-            for (int j = 0;j < loadedBooks.size();j++) {
-                for (int i = 0; i < myBooks.size(); i++) {
-                    if (myBooks.get(i).getAudio().getTitle().equals(loadedBooks.get(j).getAudio().getTitle())) {
-                        myBooks.set(i, loadedBooks.get(j));
-                        break;
-                    }
-                }
-            }
-        }
-
-        adapter.notifyDataSetChanged();
-
     }
 
     @Override
@@ -211,28 +162,6 @@ public class MainActivity extends AppCompatActivity
         dialog.show();
 
         return true;
-    }
-
-    public void loadFile() {
-        myBooks = new ArrayList<>();
-        try {
-            InputStream is = getApplicationContext().openFileInput("Docs.json");
-            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-            StringBuilder sb = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                sb.append(line);
-            }
-            Log.d(TAG,"Saved data: " + sb);
-            JSONArray arr = new JSONArray(sb.toString());
-            for (int i = 0; i < arr.length();i++) {
-                loadedBooks.add(new Book(arr.getJSONObject(i)));
-            }
-            is.close();
-        } catch (Exception e) {}
-        downloadData();
-//        downloadData();
-
     }
 
     void saveFile() {
